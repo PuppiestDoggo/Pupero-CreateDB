@@ -24,16 +24,16 @@ def main():
     # Build DATABASE_URL
     database_url = build_database_url(args.driver, args.user, args.password, args.host, args.port, args.database)
 
-    # Ensure the Login package is importable (project root on sys.path)
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if project_root not in sys.path:
-        sys.path.insert(0, project_root)
 
-    # Import SQLModel and models from Login app
+    # Import SQLModel and local models (no dependency on Login project)
     try:
         from sqlmodel import SQLModel, create_engine
         from sqlalchemy import text
-        from Login.app.models import User  # noqa: F401 - ensure model is registered with metadata
+        # Make sure local directory is importable for "models"
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        if script_dir not in sys.path:
+            sys.path.insert(0, script_dir)
+        from models import User  # noqa: F401 - ensure model is registered with metadata
     except Exception as e:
         print(f"Failed to import dependencies or models: {e}")
         sys.exit(1)
