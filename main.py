@@ -2,16 +2,19 @@ import argparse
 import sys
 import os
 from typing import Optional
+from getpass import getpass
+from urllib.parse import quote_plus
 
 
 def build_database_url(driver: str, user: str, password: str, host: str, port: int, database: str) -> str:
-    return f"{driver}://{user}:{password}@{host}:{port}/{database}"
+    """Build a SQLAlchemy URL, safely URL-encoding user and password."""
+    return f"{driver}://{quote_plus(user)}:{quote_plus(password)}@{host}:{port}/{database}"
 
 
 def main():
     parser = argparse.ArgumentParser(description="Create database schema for Pupero Auth (SQLModel)")
     parser.add_argument("--user", required=True, help="DB username")
-    parser.add_argument("--password", required=True, help="DB password")
+    parser.add_argument("--password", required=False, help="DB password (optional; can use env DB_PASSWORD or interactive prompt)")
     parser.add_argument("--host", default="127.0.0.1", help="DB host (default: 127.0.0.1)")
     parser.add_argument("--port", type=int, default=3306, help="DB port (default: 3306)")
     parser.add_argument("--database", required=True, help="Database name to create tables in")
@@ -21,8 +24,13 @@ def main():
 
     args = parser.parse_args()
 
+    # Resolve password: CLI arg > env DB_PASSWORD > interactive prompt
+    resolved_password = args.password or os.getenv('DB_PASSWORD')
+    if not resolved_password:
+        resolved_password = getpass('DB password: ')
+
     # Build DATABASE_URL
-    database_url = build_database_url(args.driver, args.user, args.password, args.host, args.port, args.database)
+    database_url = build_database_url(args.driver, args.user, resolved_password, args.host, args.port, args.database)
 
 
     # Import SQLModel and local models (no dependency on Login project)
@@ -42,7 +50,7 @@ def main():
         # Optionally create the database first by connecting to the server-level 'mysql' database
         if args.create_database:
             admin_db = "mysql"
-            admin_url = build_database_url(args.driver, args.user, args.password, args.host, args.port, admin_db)
+            admin_url = build_database_url(args.driver, args.user, resolved_password, args.host, args.port, admin_db)
             admin_engine = create_engine(admin_url, echo=args.echo)
             with admin_engine.connect() as conn:
                 conn.execute(text(
