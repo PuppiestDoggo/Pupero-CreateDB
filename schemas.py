@@ -36,6 +36,7 @@ class PasswordResetRequest(BaseModel):
 
 # User Profile
 class UserProfile(BaseModel):
+    id: int
     email: EmailStr
     username: Optional[str] = None
     role: str
@@ -103,4 +104,35 @@ class TransactionOut(BaseModel):
     amount: float
     status: str
     tx_hash: str
+    created_at: datetime
+
+# ---------------------
+# Transactions Service Schemas (Balances & Ledger)
+# ---------------------
+
+class BalanceOut(BaseModel):
+    user_id: int
+    fake_xmr: float
+    real_xmr: float
+    updated_at: datetime
+
+class BalanceSetRequest(BaseModel):
+    fake_xmr: Optional[float] = None
+    real_xmr: Optional[float] = None
+
+class BalanceAdjustRequest(BaseModel):
+    amount_xmr: float = Field(gt=0)
+    kind: Optional[str] = Field(default="fake", pattern="^(fake|real)$")
+
+class TransferCreate(BaseModel):
+    from_user_id: int = Field(ge=0)
+    to_user_id: int = Field(ge=0)
+    amount_xmr: float = Field(gt=0)
+
+class TransferOut(BaseModel):
+    id: int
+    from_user_id: int
+    to_user_id: int
+    amount_xmr: float
+    status: str
     created_at: datetime

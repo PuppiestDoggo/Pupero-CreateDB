@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, UniqueConstraint
 from typing import Optional
 from datetime import datetime
 from uuid import uuid4
@@ -34,4 +34,25 @@ class Transaction(SQLModel, table=True):
     amount: float = Field(gt=0)
     status: str = Field(default="pending", index=True, max_length=32)
     tx_hash: str = Field(index=True, unique=True, max_length=64)
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+
+class UserBalance(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(index=True)
+    fake_xmr: float = Field(default=0.0)
+    real_xmr: float = Field(default=0.0)
+    updated_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+    __table_args__ = (
+        UniqueConstraint("user_id", name="uq_user_balance_user_id"),
+    )
+
+
+class LedgerTx(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    from_user_id: int = Field(index=True)
+    to_user_id: int = Field(index=True)
+    amount_xmr: float = Field(gt=0)
+    status: str = Field(default="completed", max_length=32, index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
