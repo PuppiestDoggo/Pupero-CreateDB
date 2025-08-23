@@ -41,7 +41,7 @@ def main():
         script_dir = os.path.dirname(os.path.abspath(__file__))
         if script_dir not in sys.path:
             sys.path.insert(0, script_dir)
-        from models import User  # noqa: F401 - ensure model is registered with metadata
+        from models import User, Offer, Transaction  # noqa: F401 - ensure models are registered with metadata
     except Exception as e:
         print(f"Failed to import dependencies or models: {e}")
         sys.exit(1)
