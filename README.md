@@ -1,39 +1,23 @@
-# CreateDB
+# DB
 
-CreateDB centralizes ALL database schema (SQLModel tables) and shared Pydantic schemas for the Pupero system. No other project defines database tables.
+This directory builds the MariaDB server image (pupero-createdb) with schema initialization scripts. No Python package is exposed here and no other project should import from it.
 
 ## Purpose
-- Owns SQLModel models: User, Offer, Transaction, UserBalance, LedgerTx
-- Owns Pydantic schemas used by services (auth, offers, transactions)
-- Provides a small CLI to create the schema in MariaDB
+- Provides MariaDB server container with init scripts under /docker-entrypoint-initdb.d
+- Initializes the database and all tables on first startup (empty volume)
 
-## Requirements
-- MariaDB server accessible via `DATABASE_URL` (or the CLI params)
-- Python dependencies in `CreateDB/requirements.txt`
+## How it works
+- The official mariadb image runs any .sql/.sh placed in /docker-entrypoint-initdb.d on first run.
+- Our init script (DB/initdb.d/01-schema.sh) creates the database and tables.
 
-## Create database tables
-You can create the database and tables either locally with Python or with Docker.
+## Usage (Docker Compose)
+- docker compose up will build and start the createdb service and initialize schema automatically.
 
-### Local usage
+## Manual build
 ```
-cd CreateDB
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-
-# Create tables (with server already created DB)
-python main.py --user root --password mypass --host 127.0.0.1 --port 3306 --database pupero_auth --driver mariadb+mariadbconnector
-
-# Optionally create the database if missing
-python main.py --user root --password mypass --host 127.0.0.1 --port 3306 --database pupero_auth --driver mariadb+mariadbconnector --create-database
-```
-
-### Docker usage
-```
-docker build -t pupero-createdb -f CreateDB/Dockerfile .
-# Create the DB (if missing) and tables by running the container with CLI args
-docker run --rm pupero-createdb --user root --password mypass --host 127.0.0.1 --port 3306 --database pupero_auth --driver mariadb+mariadbconnector --create-database
+docker build -t pupero-createdb -f DB/Dockerfile .
 ```
 
 ## Notes
-- All other services import models/schemas from `CreateDB` (e.g. `from CreateDB.models import User`)
-- Services should NOT call `SQLModel.metadata.create_all`; schema management lives here.
+- Services define their own models/schemas locally and connect to the DB via environment variables.
+- No service imports code from this DB project.
