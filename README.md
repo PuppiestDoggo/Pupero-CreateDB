@@ -21,3 +21,12 @@ docker build -t pupero-createdb -f DB/Dockerfile .
 ## Notes
 - Services define their own models/schemas locally and connect to the DB via environment variables.
 - No service imports code from this DB project.
+
+
+## Troubleshooting
+- If the database container reports unhealthy:
+  - Wait a bit longer on first startup: schema initialization can take time. Our healthcheck now uses `mariadb-admin ping` with a 60s start period and extra retries.
+  - Ensure the root password matches what is stored in the persistent volume. If you change DB_ROOT_PASSWORD or DB_NAME while `db_data` volume exists, run:
+    - `docker compose down -v` to remove the volume and allow MariaDB to re-initialize.
+  - Check container logs for initialization errors from scripts under `/docker-entrypoint-initdb.d`.
+  - Local port conflicts (3306) can also cause startup problems; stop any local MySQL/MariaDB on the host.
