@@ -6,7 +6,7 @@ FROM mariadb:11
 # We keep this image minimal and rely on docker-compose to pass env vars.
 
 # Copy DB initialization scripts (run automatically on first launch when datadir is empty)
-COPY DB/initdb.d/ /docker-entrypoint-initdb.d/
+COPY Pupero-CreateDB/initdb.d/ /docker-entrypoint-initdb.d/
 RUN chmod +x /docker-entrypoint-initdb.d/*.sh || true
 
 # Expose default MariaDB port
