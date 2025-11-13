@@ -18,7 +18,7 @@ CREATE DATABASE IF NOT EXISTS \`$DB_NAME\` CHARACTER SET utf8mb4 COLLATE utf8mb4
 USE \`$DB_NAME\`;
 
 -- Users table
-CREATE TABLE IF NOT EXISTS \`user\` (
+CREATE TABLE IF NOT EXISTS `user` (
   id INT NOT NULL AUTO_INCREMENT,
   email VARCHAR(255) NOT NULL,
   username VARCHAR(50) NULL,
@@ -27,12 +27,14 @@ CREATE TABLE IF NOT EXISTS \`user\` (
   totp_secret VARCHAR(32) NULL,
   phrase VARCHAR(255) NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  is_disabled TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (id),
   UNIQUE KEY uq_user_email (email),
   UNIQUE KEY uq_user_username (username),
   KEY ix_user_email (email),
   KEY ix_user_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- Offers table
 CREATE TABLE IF NOT EXISTS \`offer\` (
